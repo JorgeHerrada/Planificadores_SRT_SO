@@ -16,9 +16,10 @@ namespace Planificadores_SRT_SO
         bool terminado = false;
         int maximoProcesos = 7;
         Cola cola = new Cola();
-        int quantum = 2;
-        int contadorQuantum = 0;
         bool[] procesoActivo = { false, false, false, false, false, false, false };
+
+        List<ProgressBar> listaBarras = new List<ProgressBar>();
+        List<Label> listaLabels = new List<Label>();
 
         public Form1()
         {
@@ -66,6 +67,9 @@ namespace Planificadores_SRT_SO
             // limpiar entradas de texto
             txtNombreNuevoProceso.Text = "";
             txtDuracionNuevoProceso.Text = "";
+
+            // activar boton de iniciarProcesos
+            btnIniciarProcesos.Enabled = true;
         }
 
 
@@ -128,13 +132,16 @@ namespace Planificadores_SRT_SO
             iniciado = false;
             terminado = false;
             duracionGlobal = 0;
-            contadorQuantum = 0;
+
+            // activar boton de iniciarProcesos
+            btnIniciarProcesos.Enabled = false;
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             lblTimer.Text = "";
             btnPausarProcesos.Enabled = false;
+            btnIniciarProcesos.Enabled = false;
         }
 
         private void btnIniciarProcesos_Click(object sender, EventArgs e)
@@ -172,14 +179,36 @@ namespace Planificadores_SRT_SO
                 pgrGlobal.Maximum = duracionGlobal;
 
 
-                // Activamos etiqueta y barra de progreso del primer proceso
-                lblProceso1.Text = (string)lstNombreProceso.Items[0];
-                lblProceso1.Visible = true;
-                pbr1.Visible = true;
-                //currentProcess = 0; // asigna el proceso actual
+                // asignamos barras de progreso a la lista
+                listaBarras.Add(pbr1);
+                listaBarras.Add(pbr2);
+                listaBarras.Add(pbr3);
+                listaBarras.Add(pbr4);
+                listaBarras.Add(pbr5);
+                listaBarras.Add(pbr6);
+                listaBarras.Add(pbr7);
+
+                // asignamos labels a lista
+                listaLabels.Add(lblProceso1);
+                listaLabels.Add(lblProceso2);
+                listaLabels.Add(lblProceso3);
+                listaLabels.Add(lblProceso4);
+                listaLabels.Add(lblProceso5);
+                listaLabels.Add(lblProceso6);
+                listaLabels.Add(lblProceso7);
+
+
+                // determinamos qué proceso es el primero basado en SRT
+                barraActual = cola.IndiceSRT();
+
+                
+                // Activamos etiqueta y barra de progreso del primer proceso basado en SRT
+                listaLabels[barraActual].Text = (string)lstNombreProceso.Items[barraActual];
+                listaLabels[barraActual].Visible = true;
+                listaBarras[barraActual].Visible = true;
 
                 // asigna la duraccion del proceso como maximo de la barra de progreso
-                pbr1.Maximum = Int32.Parse((string)lstDuracionProceso.Items[0]);
+                listaBarras[barraActual].Maximum = Int32.Parse((string)lstDuracionProceso.Items[barraActual]);
 
                 // Inicializa el timer
                 timer.Enabled = true;
@@ -209,7 +238,7 @@ namespace Planificadores_SRT_SO
             // mostrar datos del timer
             lblTimer.Text = String.Format("{0:00}:", minutos) + String.Format("{0:00}", segundos);
 
-
+            /*
             // el quantum se completo? cambiamos proceso y reseteamos contadorQuantum
             if (contadorQuantum == quantum)
             {
@@ -218,7 +247,7 @@ namespace Planificadores_SRT_SO
 
             // aumenta el contador de quantum
             contadorQuantum++;
-
+            */
 
             // avanzamos en contador global
             if (pgrGlobal.Value < duracionGlobal)
@@ -226,162 +255,35 @@ namespace Planificadores_SRT_SO
                 pgrGlobal.Value++;
             }
 
-            switch (barraActual)
+            // la barra actual aun no llega a su fin? aumentamos 
+            if(listaBarras[barraActual].Value < Int32.Parse((string)lstDuracionProceso.Items[barraActual]))
             {
-                case 0:
-                    // Aun no termina el proceso?
-                    if (pbr1.Value < Int32.Parse((string)lstDuracionProceso.Items[barraActual]))
-                    {
-                        // aunmenta un paso
-                        pbr1.Value++;
-                    }
-                    else
-                    {
-                        // se completo el proceso
-                        // entonces intenta pasar al siguiente
-                        // Y marca bandera de que no hay proceso activo
-                        try
-                        {
-                            procesoActivo[barraActual] = false;
-                            cambiarProceso();
-                        }
-                        // No hay un siguiente? entonces termina la llamada de la funcion
-                        catch
-                        {
-                            return;
-                        }
-                    }
-                    break;
-                case 1:
-                    pbr2.Maximum = Int32.Parse((string)lstDuracionProceso.Items[barraActual]);
-                    lblProceso2.Text = (string)lstNombreProceso.Items[barraActual];
-                    pbr2.Visible = true;
-                    lblProceso2.Visible = true;
-                    if (pbr2.Value < Int32.Parse((string)lstDuracionProceso.Items[barraActual]))
-                    {
-                        pbr2.Value++;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            procesoActivo[barraActual] = false;
-                            cambiarProceso();
-                        }
-                        catch
-                        {
-                            return;
-                        }
-                    }
-                    break;
-                case 2:
-                    lblProceso3.Visible = true;
-                    pbr3.Visible = true;
-                    pbr3.Maximum = Int32.Parse((string)lstDuracionProceso.Items[barraActual]);
-                    lblProceso3.Text = (string)lstNombreProceso.Items[barraActual];
-                    if (pbr3.Value < Int32.Parse((string)lstDuracionProceso.Items[barraActual]))
-                    {
-                        pbr3.Value++;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            procesoActivo[barraActual] = false;
-                            cambiarProceso();
-                        }
-                        catch
-                        {
-                            return;
-                        }
-                    }
-                    break;
-                case 3:
-                    pbr4.Visible = true;
-                    lblProceso4.Visible = true;
-                    pbr4.Maximum = Int32.Parse((string)lstDuracionProceso.Items[barraActual]);
-                    lblProceso4.Text = (string)lstNombreProceso.Items[barraActual];
-                    if (pbr4.Value < Int32.Parse((string)lstDuracionProceso.Items[barraActual]))
-                    {
-                        pbr4.Value++;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            procesoActivo[barraActual] = false;
-                            cambiarProceso();
-                        }
-                        catch
-                        {
-                            return;
-                        }
-                    }
-                    break;
-                case 4:
-                    pbr5.Visible = true;
-                    lblProceso5.Visible = true;
-                    pbr5.Maximum = Int32.Parse((string)lstDuracionProceso.Items[barraActual]);
-                    lblProceso5.Text = (string)lstNombreProceso.Items[barraActual];
-                    if (pbr5.Value < Int32.Parse((string)lstDuracionProceso.Items[barraActual]))
-                    {
-                        pbr5.Value++;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            procesoActivo[barraActual] = false;
-                            cambiarProceso();
-                        }
-                        catch
-                        {
-                            return;
-                        }
-                    }
-                    break;
-                case 5:
-                    pbr6.Visible = true;
-                    lblProceso6.Visible = true;
-                    pbr6.Maximum = Int32.Parse((string)lstDuracionProceso.Items[barraActual]);
-                    lblProceso6.Text = (string)lstNombreProceso.Items[barraActual];
-                    if (pbr6.Value < Int32.Parse((string)lstDuracionProceso.Items[barraActual]))
-                    {
-                        pbr6.Value++;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            procesoActivo[barraActual] = false;
-                            cambiarProceso();
-                        }
-                        catch
-                        {
-                            return;
-                        }
-                    }
-                    break;
-                case 6:
-                    pbr7.Visible = true;
-                    lblProceso7.Visible = true;
-                    pbr7.Maximum = Int32.Parse((string)lstDuracionProceso.Items[barraActual]);
-                    lblProceso7.Text = (string)lstNombreProceso.Items[barraActual];
-                    if (pbr7.Value < Int32.Parse((string)lstDuracionProceso.Items[barraActual]))
-                    {
-                        pbr7.Value++;
-                    }
-                    else
-                    {
-                        procesoActivo[barraActual] = false;
-                        cambiarProceso();
-                        //timer.Enabled = false;
-                    }
-                    break;
-                default:
-                    timer.Enabled = false;
-                    break;
+                listaBarras[barraActual].Value++;
             }
+            // intentamos cambiar de proceso
+            else
+            {
+                // marcamos indice actual como terminado en la cola
+                cola.ProcesoTerminado(barraActual);
+                // obtenemos nuevo indice con SRT
+                barraActual = cola.IndiceSRT();
+                
+                // Todos los procesos estan terminados? Detenemos el timer
+                if (barraActual == -1)
+                {
+                    timer.Enabled = false;
+                    MessageBox.Show("Cola de procesos terminada.");
+                    return;
+                }
+
+                // activamos labels y progresBar del siguiente proceso y su  
+                listaBarras[barraActual].Maximum = Int32.Parse((string)lstDuracionProceso.Items[barraActual]);
+                listaLabels[barraActual].Text = (string)lstNombreProceso.Items[barraActual];
+                listaBarras[barraActual].Visible = true;
+                listaLabels[barraActual].Visible = true;
+
+            }
+
         }
 
         private void btnPausarProcesos_Click(object sender, EventArgs e)
@@ -396,50 +298,5 @@ namespace Planificadores_SRT_SO
             timer.Enabled = false;
         }
 
-        private void cambiarProceso()
-        {
-            // Se completaron los procesos? paramos timer
-            if (procesosTermiados())
-            {
-                timer.Enabled = false;
-                return;
-            }
-
-            // extrae informacion de la cola y la agrega al final
-            string[] datos = cola.Extraer();
-            cola.Insertar(datos[0], datos[1], datos[2]);
-            if (barraActual == lstNumeroProceso.Items.Count - 1)
-            {
-                barraActual = 0;
-            }
-            else
-            {
-                barraActual++;
-            }
-            contadorQuantum = 0;
-
-            // sigue cambiando de proceso hasta que encuentre uno activo
-            if (!procesoActivo[barraActual])
-            {
-                cambiarProceso();
-            }
-        }
-
-        // revisa si queda algun proceso sin terminar
-        // true == TODOS LOS PROCESOS ESTAN TERMINADOS
-        private bool procesosTermiados()
-        {
-            // revisa cada bandera
-            for (int i = 0; i < lstNumeroProceso.Items.Count; i++)
-            {
-                // si hay procesos activos, retorna falso
-                if (procesoActivo[i])
-                {
-                    return false;
-                }
-            }
-            // no hay procesos activos, true
-            return true;
-        }
     }
 }

@@ -7,6 +7,8 @@ namespace ListasTipoCola1
 {
     class Cola
     {
+        public int size = 0;
+        List<int> listaTerminados = new List<int>();
         class Nodo
         {
             public string id;
@@ -33,6 +35,7 @@ namespace ListasTipoCola1
 
         public void Insertar(string id, string nombre, string duracion)
         {
+            size++;
             Nodo nuevo;
             nuevo = new Nodo();
             nuevo.id = id;
@@ -55,6 +58,7 @@ namespace ListasTipoCola1
         {
             if (!Vacia())
             {
+                size--;
                 string[] informacion = { raiz.id, raiz.nombre, raiz.duracion };
                 if (raiz == fondo)
                 {
@@ -75,31 +79,45 @@ namespace ListasTipoCola1
             }
         }
 
-        /*
-        public void Imprimir()
+        // ordenar la cola en orden ascendiente de duración
+        public int IndiceSRT()
         {
-            Nodo reco = raiz;
-            Console.WriteLine("Listado de todos los elementos de la cola.");
-            while (reco != null)
+            // si la cola esta vacia no actuamos, retorna -1
+            if (Vacia())
             {
-                Console.Write(reco.info + "-");
-                reco = reco.sig;
+                Console.WriteLine("La cola está vacía");
+                return -1;
             }
-            Console.WriteLine();
+
+            // creamos nodo auxiliar para recorrer cola
+            Nodo nuevo;
+            nuevo = raiz;
+
+            // recorre la cola  y retorna el indice del trabajo con menor tiempo restante
+            int srt = 999999;
+            int indiceMenor = -1;
+            for(int i = 0; i < size; i++)
+            {
+                if (!listaTerminados.Contains(i))
+                {
+                    if (Int32.Parse(nuevo.duracion) < srt)
+                    {
+                        srt = Int32.Parse(nuevo.duracion);
+                        indiceMenor = i;
+                    }
+                }
+                nuevo = nuevo.sig;
+            }
+            Console.WriteLine(indiceMenor);
+            return indiceMenor;
         }
 
-        
-        static void Main(string[] args)
+        // añadimos indice a lista de procesos terminados
+        public void ProcesoTerminado(int indice)
         {
-            Cola cola1 = new Cola();
-            cola1.Insertar(5);
-            cola1.Insertar(10);
-            cola1.Insertar(50);
-            cola1.Imprimir();
-            Console.WriteLine("Extraemos uno de la cola:" + cola1.Extraer());
-            cola1.Imprimir();
-            Console.ReadKey();
+            listaTerminados.Add(indice);
         }
-        */
+
     }
+
 }
